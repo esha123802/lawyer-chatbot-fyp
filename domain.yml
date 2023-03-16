@@ -2,6 +2,7 @@ version: '3.0'
 session_config:
   session_expiration_time: 60
   carry_over_slots_to_new_session: true
+
 intents:
 - greet
 - goodbye
@@ -21,10 +22,12 @@ intents:
 - senior_citizens
 - supreme_court
 - sexual_harassment
+
 entities:
 - options
 - state
 - court_of_practice
+
 slots:
   state:
     type: text
@@ -34,6 +37,7 @@ slots:
       conditions:
       - active_loop: lawyer_form
         requested_slot: state
+
   court_of_practice:
     type: text
     influence_conversation: true
@@ -42,40 +46,51 @@ slots:
       conditions:
       - active_loop: lawyer_form
         requested_slot: court_of_practice
+
 responses:
   utter_greet:
   - text: Hey! How are you?
+
   utter_cheer_up:
   - image: https://i.imgur.com/nGF1K8f.jpg
     text: 'Here is something to cheer you up:'
+
   utter_did_that_help:
   - text: Did that help you?
+
   utter_happy:
   - text: Great, carry on!
+
   utter_goodbye:
   - text: Bye
+
   utter_iamabot:
   - text: I am a bot, powered by Rasa.
+
   utter_request_option:
   - text: |
       Enter option: 
       1. Case Study 
       2. Lawyer Information 
       3. General Question 
+
   utter_submit:
   - text: Ok.
-  utter_ask_state:
-  - text: Which state should the lawyer belong to?
-  utter_ask_court_of_practice:
-  - text: what court should the lawyer practice in? {state} court or supreme court
+
+  # utter_ask_court_of_practice:
+  # - text: what court should the lawyer practice in? {state} court or supreme court
+
   utter_lawyer_values:
   - text: So {state} and {court_of_practice}
+
   utter_hindu_marriage:
   - text: A woman can seek the help of the police to help her stop her marriage if she is being forced to marry against her will. However, given the level of mistrust that prevails in our society vis-à-vis the police, such an intervention can boomerang on the woman and may lead to more trouble. In such situations, social pressure applied judiciously might work better on her parents as opposed to legal interventions. A young woman being forced to marry against her will by her parents should first try to identify and approach influential people within her own community or extended family who have the moral clout to influence her parent's decision. Alternatively, sympathetic teachers or respected social workers in the area could also be approached for help. However, these social interventions are outside the realm of legal rights and in extreme cases where social pressure does not work, police help may be sought.
+
   utter_consumer_rights:
   - text: |-
       The consumer has the following rights :-1. The right to be protected against the marketing of goods and services which are hazardous to life and property; 2. The right to be informed about the quality,quantity,potency,purity,standard and price of goods or services so as to protect the consumer against unfair trade practices;3. The right to be assured, wherever possible, access to a variety of goods and services at competitive prices;4. The right to be heard and to be assured that consumer's interests will receive due consideration at appropriate for a;
       5. The right to seek redressal against unfair trade practices or restrictive trade practices or unscrupulous exploitation of consumers and6. The right to consumer education.
+  
   utter_copyright:
   - text: |-
       Copyright is a bundle of rights that confers on its owners the following rights to:
@@ -90,6 +105,7 @@ responses:
       (i) The right of publication: It is a right to decide whether or not to publish the work;
       (ii) The right of paternity: It is a right to claim authorship for published or exhibited work;
       (iii) The right of integrity: It is a right to prevent alteration and other actions that may damage the authors honor or reputation.
+  
   utter_disability:
   - text: |-
       In consonance with the policy of empowerment of persons with disabilities and in order to effectively deal with their multi dimensional problems, the following National Institutes/Apex level institutions have been setup in each major area of disability:-
@@ -100,21 +116,26 @@ responses:
       (v) National Institute for Rehabilitation Training and Research, Cuttack.
       (vi) Institute for the Physically Handicapped, New Delhi.
       (vii) National Institute for Empowerment of Persons with Multiple Disabilities (NIEPMD), Chennai
+  
   utter_fir:
   - text: |-
       F.I.R. means First Information Report, made to police, about commission of a cognizable offence.
        The informant/ complainant should go to the police station having jurisdiction over the area (where the offence is committed) and report to officer in-charge/ station house officer about commission of a cognizable offence.
+  
   utter_home_loan:
   - text: |-
       Your bank will assess your repayment capacity while deciding the home loan eligibility. Repayment capacity is based on your monthly disposable / surplus income, (which in turn is based on factors such as total monthly income / surplus less monthly expenses) and other factors like spouse's income, assets, liabilities, stability of income etc. The main concern of the bank is to make sure that you comfortably repay the loan on time and ensure end use. The higher the monthly disposable income, higher will be the amount you will be eligible for loan. Typically a bank assumes that about 55-60 % of your monthly disposable / surplus income is available for repayment of loan. However, some banks calculate the income available for EMI payments based on an individual’s gross income and not on his disposable income.
       The amount of the loan depends on the tenure of the loan and the rate of interest also as these variables determine your monthly outgo / outflow which in turn depends on your disposable income. Banks generally fix an upper age limit for home loan applicants.
+  
   utter_new_case:
   - text: You may directly approach Presiding officer/Judge of the court to submit your complaint on any working day in the court at the time mentioned on the board titled “Working hours”. However, your complaint must not be an interference in administration of justice.
+  
   utter_senior_citizens:
   - text: |-
       The Maintenance and Welfare of Parents and Senior Citizens Act 2007 envisages providing need-based maintenance to the parents/grand parents from their children. Tribunals will be set up for the purpose of settling the maintenance claims of the parents in a time bound manner. Lawyers are barred from participating in the proceedings of the Tribunals at any stage.
 
       The Maintenance and Welfare of Parents and Senior Citizens Act 2007 also contains enabling provisions like protection of life and property of senior citizens, better medical facilities, setting up of old age homes in every district, etc.
+  
   utter_supreme_court:
   - text: |-
       Prequalification - you must have prepared the Petition offline. The steps required for E-Filing process are:
@@ -122,6 +143,7 @@ responses:
       2. After successful login, you have to upload all the files/documents of the matter.
       3. At last Court Fee is automatically calculated through system. The total Court Fee includes Court Fee prescribed in the Supreme Court Rules + printing charges (@1.50 per page) for 1+5 sets(in case of Writ Petition) or 1-3 sets(in rest of the matters). The total Court Fee is payable online through Credit Card only.
       4. Finally, if Court Fee is successfully paid a reference no. is generated by the system against the case filed by the Petitioner-in-Person/Advocate on record. Same reference no. is to be used again at the time of refilling of documents.
+  
   utter_sexual_harassment:
   - text: |-
       Sexual harassment includes any one or more of the following unwelcome acts or behaviour (whether directly or by implication) namely:--
@@ -136,6 +158,7 @@ responses:
       (c) implied or explicit threat about her present or future employment status; or
       (d) interference with her work or creating an intimidating or offensive or hostile work environment for her; or
       (e) humiliating treatment likely to affect her health or safety.
+
 actions:
 - action_request_option
 - action_print_lawyer_info
@@ -143,9 +166,10 @@ actions:
 - action_offer_options
 - action_handle_option_selection
 - utter_submit
-- utter_ask_state
-- utter_ask_court_of_practice
+- action_ask_state
+- action_ask_court_of_practice
 - utter_lawyer_values
+
 forms:
   lawyer_form:
     required_slots:

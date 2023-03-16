@@ -17,6 +17,26 @@ import os
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
+# Define the scope of the Google Sheets API
+scope = ['https://www.googleapis.com/auth/spreadsheets']
+
+# Set the path to the credentials file for your GCP project
+credentials_path = 'C:/Users/Esha Srivastav/Desktop/dev/fyp/rasa-fyp-a5e02f110091.json'
+
+# Authenticate your project using the credentials file
+credentials = ServiceAccountCredentials.from_json_keyfile_name(credentials_path, scope)
+
+# Set the ID of the Google Sheets spreadsheet you want to access
+spreadsheet_id = '1SfZcwQ9TuT2BTGRHxS-YEMZjHCwgsFyTJQ2cPGND6ws'
+
+# Create a client to access the Google Sheets API
+client = gspread.authorize(credentials)
+
+# Open the worksheet you want to read data from
+worksheet = client.open_by_key(spreadsheet_id).sheet1
+
+# Read the data from the worksheet
+data = worksheet.get_all_records()
 
 class ActionHelloWorld(Action):
 
@@ -36,35 +56,14 @@ class PrintLawyerInfo(Action):
         return "action_print_lawyer_info"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        # Define the scope of the Google Sheets API
-        scope = ['https://www.googleapis.com/auth/spreadsheets']
-
-        # Set the path to the credentials file for your GCP project
-        credentials_path = 'C:/Users/Esha Srivastav/Desktop/dev/fyp/rasa-fyp-a5e02f110091.json'
-
-        # Authenticate your project using the credentials file
-        credentials = ServiceAccountCredentials.from_json_keyfile_name(credentials_path, scope)
-
-        # Set the ID of the Google Sheets spreadsheet you want to access
-        spreadsheet_id = '1SfZcwQ9TuT2BTGRHxS-YEMZjHCwgsFyTJQ2cPGND6ws'
-
-        # Create a client to access the Google Sheets API
-        client = gspread.authorize(credentials)
-
-        # Open the worksheet you want to read data from
-        worksheet = client.open_by_key(spreadsheet_id).sheet1
-
-        # Read the data from the worksheet
-        data = worksheet.get_all_records()
-        
+               
         state = tracker.get_slot("state")
-        court_of_practice = tracker.get_slot("court_of_practice")
+        court_of_practice = tracker.get_slot("court_of_practice")        
 
-        flag = False
+        # To check whether lawyer data for given requirement exists or not in the csv file
+        flag = False 
 
-        # Use the data in your Rasa chatbot as needed
         for row in data:
-            # Access the values in each row of the worksheet   
             if row['state'] == state and row['court of practice'] == court_of_practice:
                 dispatcher.utter_message(text=f"Lawyer Name: {row['name']} \nLawyer State: {row['state']} \nMobile No.: {row['mobile']}")
                 flag = True
@@ -111,6 +110,43 @@ class ActionOfferOptions(Action):
         ]
         
         message = "Please select an option:"
-        dispatcher.utter_message(text=message, buttons=buttons)
+        dispatcher.utter_message(text=message, buttons=buttons, force_reply=True)
+
+        return []
+    
+class ActionOfferStateOptions(Action):
+    def name(self) -> Text:
+        return "action_ask_state"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        buttons = []
+
+        for row in data:
+            buttons.append({"payload": row["state"], "title": row['state']})
+        
+        message = "Which state should the lawyer belong to?"
+        dispatcher.utter_message(text=message, buttons=buttons, force_reply=True)
+
+        return []
+    
+class ActionOfferCOPOptions(Action):
+    def name(self) -> Text:
+        return "action_ask_court_of_practice"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        buttons = [
+            {"payload": "district", "title": "District"},
+            {"payload": "high", "title": "High"},
+            {"payload": "supreme", "title": "Supreme"}
+        ]
+        
+        message = "What court should the lawyer practice in?"
+        dispatcher.utter_message(text=message, buttons=buttons, force_reply=True)
 
         return []
