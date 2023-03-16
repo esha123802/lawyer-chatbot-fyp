@@ -5,54 +5,65 @@ stories:
 - story: happy path
   steps:
   - intent: greet
-  - action: utter_greet
+  - action: action_request_option
+  - action: action_offer_options
 
 - story: hindu marriage
   steps:
   - intent: hindu_marriage
   - action: utter_hindu_marriage
+  - action: action_offer_options
 
 - story: consumer rights
   steps:
   - intent: consumer_rights
   - action: utter_consumer_rights
+  - action: action_offer_options
 
 - story: copyright
   steps:
   - intent: copyright
   - action: utter_copyright
+  - action: action_offer_options
 
 - story: disability
   steps:
   - intent: disability
   - action: utter_disability
+  - action: action_offer_options
 
 - story: fir
   steps:
   - intent: fir
   - action: utter_fir
+  - action: action_offer_options
 
 - story: home loan
   steps:
   - intent: home_loan
   - action: utter_home_loan
+  - action: action_offer_options
 
 - story: new case
   steps:
   - intent: new_case
   - action: utter_new_case
+  - action: action_offer_options
 
 - story: senior citizens
   steps:
   - intent: senior_citizens
   - action: utter_senior_citizens
+  - action: action_offer_options
 
 - story: supreme court
   steps:
   - intent: supreme_court
   - action: utter_supreme_court
+  - action: action_offer_options
 
 - story: sexual harassment
   steps:
   - intent: sexual_harassment
   - action: utter_sexual_harassment
+  - action: action_offer_options

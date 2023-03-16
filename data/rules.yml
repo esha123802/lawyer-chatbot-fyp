@@ -12,13 +12,13 @@ rules:
   - intent: bot_challenge
   - action: utter_iamabot
 
-- rule: Ask state
+- rule: Ask lawyer form
   steps:
   - intent: request_lawyer
   - action: lawyer_form
   - active_loop: lawyer_form
 
-- rule: Submit name form
+- rule: Submit lawyer form
   condition:
   - active_loop: lawyer_form
   steps:
@@ -29,3 +29,4 @@ rules:
   - action: utter_lawyer_values
   - action: action_print_lawyer_info
   - action: action_reset_all_slots
+  - action: action_offer_options

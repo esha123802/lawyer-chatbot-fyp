@@ -83,3 +83,34 @@ class ActionResetSlots(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         
         return [SlotSet(slot, None) for slot in ["state", "court_of_practice"]]
+    
+class ActionGreetUser(Action):
+    def name(self) -> Text:
+        return "action_greet_user"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        dispatcher.utter_message("Hello! How can I help you today?")
+
+        return []
+    
+class ActionOfferOptions(Action):
+    def name(self) -> Text:
+        return "action_offer_options"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+            
+        buttons = [
+            {"payload": "/hindu_marriage", "title": "1. Case Study"},
+            {"payload": "/request_lawyer", "title": "2. Lawyer Information"},
+            {"payload": "/consumer_rights", "title": "3. General Question"}
+        ]
+        
+        message = "Please select an option:"
+        dispatcher.utter_message(text=message, buttons=buttons)
+
+        return []
