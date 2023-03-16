@@ -1,0 +1,182 @@
+version: "3.1"
+
+nlu:
+- intent: greet
+  examples: |
+    - hey
+    - hello
+    - hi
+    - hello there
+    - good morning
+    - good evening
+    - moin
+    - hey there
+    - let's go
+    - hey dude
+    - goodmorning
+    - goodevening
+    - good afternoon
+
+- intent: goodbye
+  examples: |
+    - cu
+    - good by
+    - cee you later
+    - good night
+    - bye
+    - goodbye
+    - have a nice day
+    - see you around
+    - bye bye
+    - see you later
+
+- intent: affirm
+  examples: |
+    - yes
+    - y
+    - indeed
+    - of course
+    - that sounds good
+    - correct
+
+- intent: deny
+  examples: |
+    - no
+    - n
+    - never
+    - I don't think so
+    - don't like that
+    - no way
+    - not really
+
+- intent: mood_great
+  examples: |
+    - perfect
+    - great
+    - amazing
+    - feeling like a king
+    - wonderful
+    - I am feeling very good
+    - I am great
+    - I am amazing
+    - I am going to save the world
+    - super stoked
+    - extremely good
+    - so so perfect
+    - so good
+    - so perfect
+
+- intent: mood_unhappy
+  examples: |
+    - my day was horrible
+    - I am sad
+    - I don't feel very well
+    - I am disappointed
+    - super sad
+    - I'm so sad
+    - sad
+    - very sad
+    - unhappy
+    - not good
+    - not very good
+    - extremly sad
+    - so saad
+    - so sad
+
+- intent: bot_challenge
+  examples: |
+    - are you a bot?
+    - are you a human?
+    - am I talking to a bot?
+    - am I talking to a human?
+
+- intent: request_lawyer
+  examples: |
+    - i want to search for [lawyers](options)
+    - find [lawyers](options)
+    - look for [lawyers](options)
+    - i want to search for [lawyer](options)
+    - find [lawyer](options)
+    - look for [lawyer](options)
+
+- intent: hindu_marriage
+  examples: |
+    - women childhood marriage
+    - what if women is forced to marry before turning 18
+    - what if marriage before 18 years age for women
+    - what are rights for underage women who is forced into marriage
+    - what can i do if i am married against my will
+
+- intent: consumer_rights
+  examples: |
+    - consumer rights
+    - what are consumer rights
+    - what are my rights as a consumer
+    - rights entitled to me as a consumer
+    - what can i do as a consumer
+
+- intent: copyright
+  examples: |
+    - what are copyrights for a owner
+    - copyrights in india
+    - moral rights for copyright owner
+    - what rights do i get as a copyright owner
+    - what is copyright
+
+- intent: disability
+  examples: |
+    - what are programs for persons with disabilities
+    - programs for persons with disabilities
+    - what programs is a person with disabilities entitled to
+    - empowerment for persons with disabilities
+    - what are institutions for persons with disabilities
+
+- intent: fir
+  examples: |
+    - fir 
+    - tell me about fir
+    - what is a fir
+    - how to file fir
+    - i want to register a fir
+    - explain fir
+
+- intent: home_loan
+  examples: |
+    - home loan eligibility
+    - How will your bank decide your home loan eligibility?
+    - how can i be eligible for home loan
+    - when does my bank give me home loan
+    - how does my bank decide to give me home loan
+
+- intent: new_case
+  examples: |
+    - i want to file a case
+    - how to file a case
+    - register a new case
+    - how to create a new case
+    - start a new case
+
+- intent: senior_citizens
+  examples: |
+    - what are rights for a senior citizen
+    - what is protection scheme for senior citizen
+    - maintenance and Welfare of Parents and Senior Citizens Act 2007
+    - what are the provisions for prevention of abandonment of senior citizen
+    - rights and protection for older citizens
+
+- intent: supreme_court
+  examples: |
+    - What are the procedures/ steps required to be taken for E-Filing process in supreme court?
+    - how can i file process online for supreme court
+    - supreme court online process filling
+    - e-filling cases for supreme case
+    - fill case online for supreme court
+
+- intent: sexual_harrasment
+  examples: |
+    - sexual harassment at the workplace
+    - what is sexual harassment for workplace
+    - what is harassment at the office
+    - i feel harassed at the office
+    - what is counted as sexual harassment
+

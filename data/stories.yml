@@ -1,0 +1,58 @@
+version: "3.1"
+
+stories:
+
+- story: happy path
+  steps:
+  - intent: greet
+  - action: utter_greet
+
+- story: hindu marriage
+  steps:
+  - intent: hindu_marriage
+  - action: utter_hindu_marriage
+
+- story: consumer rights
+  steps:
+  - intent: consumer_rights
+  - action: utter_consumer_rights
+
+- story: copyright
+  steps:
+  - intent: copyright
+  - action: utter_copyright
+
+- story: disability
+  steps:
+  - intent: disability
+  - action: utter_disability
+
+- story: fir
+  steps:
+  - intent: fir
+  - action: utter_fir
+
+- story: home loan
+  steps:
+  - intent: home_loan
+  - action: utter_home_loan
+
+- story: new case
+  steps:
+  - intent: new_case
+  - action: utter_new_case
+
+- story: senior citizens
+  steps:
+  - intent: senior_citizens
+  - action: utter_senior_citizens
+
+- story: supreme court
+  steps:
+  - intent: supreme_court
+  - action: utter_supreme_court
+
+- story: sexual harassment
+  steps:
+  - intent: sexual_harassment
+  - action: utter_sexual_harassment

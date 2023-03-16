@@ -1,0 +1,31 @@
+version: "3.1"
+
+rules:
+
+- rule: Say goodbye anytime the user says goodbye
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+
+- rule: Say 'I am a bot' anytime the user challenges
+  steps:
+  - intent: bot_challenge
+  - action: utter_iamabot
+
+- rule: Ask state
+  steps:
+  - intent: request_lawyer
+  - action: lawyer_form
+  - active_loop: lawyer_form
+
+- rule: Submit name form
+  condition:
+  - active_loop: lawyer_form
+  steps:
+  - action: lawyer_form
+  - active_loop: null
+  - slot_was_set:
+    - requested_slot: null
+  - action: utter_lawyer_values
+  - action: action_print_lawyer_info
+  - action: action_reset_all_slots
