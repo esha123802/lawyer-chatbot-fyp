@@ -28,7 +28,8 @@ credentials_path = 'C:/Users/Esha Srivastav/Desktop/dev/fyp/rasa-fyp-a5e02f11009
 credentials = ServiceAccountCredentials.from_json_keyfile_name(credentials_path, scope)
 
 # Set the ID of the Google Sheets spreadsheet you want to access
-spreadsheet_id = '1SfZcwQ9TuT2BTGRHxS-YEMZjHCwgsFyTJQ2cPGND6ws'
+spreadsheet_id = '1HZ6FwP0u_zT4pbgFWusInln7p1Nmp6H388jsDsuBq6o' # final
+# spreadsheet_id = '1SfZcwQ9TuT2BTGRHxS-YEMZjHCwgsFyTJQ2cPGND6ws'
 
 # Create a client to access the Google Sheets API
 client = gspread.authorize(credentials)
@@ -69,9 +70,13 @@ class PrintLawyerInfo(Action):
         # To check whether lawyer data for given requirement exists or not in the csv file
         flag = False 
 
+
         for row in data:
-            if row['state'] == state and row['court of practice'] == court_of_practice:
-                dispatcher.utter_message(text=f"Lawyer Name: {row['name']} \nLawyer State: {row['state']} \nMobile No.: {row['mobile']}")
+            if row['state'] == state and row['court of practice'].find(court_of_practice) != -1:
+                if row['address'] == "":
+                    dispatcher.utter_message(text=f"Lawyer Name: {row['name']} \nLawyer State: {row['state']} \nAddress: Not Available")
+                else:
+                    dispatcher.utter_message(text=f"Lawyer Name: {row['name']} \nLawyer State: {row['state']} \nAddress: {row['address']}")
                 flag = True
         
         if not flag:
@@ -145,10 +150,12 @@ class ActionOfferCOPOptions(Action):
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        
+        state = tracker.get_slot("state")
 
         buttons = [
             {"payload": "district", "title": "District"},
-            {"payload": "high", "title": "High"},
+            {"payload": "high", "title": state + " High"},
             {"payload": "supreme", "title": "Supreme"}
         ]
 
@@ -156,9 +163,6 @@ class ActionOfferCOPOptions(Action):
         dispatcher.utter_message(text=message, buttons=buttons, ignore_text=True)
 
         return []
-
-def clean_name(name):
-    return "".join([c for c in name if c.isalpha()])
 
 class ValidateLawyerForm(FormValidationAction):
     def name(self) -> Text:
@@ -172,7 +176,6 @@ class ValidateLawyerForm(FormValidationAction):
         domain: DomainDict,
     ) -> Dict[Text, Any]:
         """Validate `state` value."""
-        print(slot_value)
         if slot_value in states:
             return {"state": slot_value}
         else:
@@ -187,7 +190,6 @@ class ValidateLawyerForm(FormValidationAction):
         domain: DomainDict,
     ) -> Dict[Text, Any]:
         """Validate `court_of_practice` value."""
-        print(slot_value)
         if slot_value in ["district", "high", "supreme"]:
             return {"court_of_practice": slot_value}
         else:
