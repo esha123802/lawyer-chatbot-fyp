@@ -9,9 +9,10 @@
 
 from typing import Any, Text, Dict, List
 
-from rasa_sdk import Action, Tracker
+from rasa_sdk import Action, Tracker, FormValidationAction, ValidationAction
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
+from rasa_sdk.types import DomainDict
 
 import os
 import gspread
@@ -37,6 +38,11 @@ worksheet = client.open_by_key(spreadsheet_id).sheet1
 
 # Read the data from the worksheet
 data = worksheet.get_all_records()
+
+states = set()
+
+for row in data:
+    states.add(row['state'])
 
 class ActionHelloWorld(Action):
 
@@ -104,14 +110,14 @@ class ActionOfferOptions(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
             
         buttons = [
-            {"payload": "/hindu_marriage", "title": "1. Case Study"},
-            {"payload": "/request_lawyer", "title": "2. Lawyer Information"},
-            {"payload": "/consumer_rights", "title": "3. General Question"}
+            {"payload": "/hindu_marriage", "title": "Case Study"},
+            {"payload": "/request_lawyer", "title": "Lawyer Information"},
+            {"payload": "/consumer_rights", "title": "General Question"}
         ]
-        
-        message = "Please select an option:"
-        dispatcher.utter_message(text=message, buttons=buttons, force_reply=True)
 
+        message = "Please select an option:"
+        dispatcher.utter_message(text=message, buttons=buttons, ignore_text=True)
+        
         return []
     
 class ActionOfferStateOptions(Action):
@@ -124,11 +130,11 @@ class ActionOfferStateOptions(Action):
 
         buttons = []
 
-        for row in data:
-            buttons.append({"payload": row["state"], "title": row['state']})
-        
+        for state in states:
+                buttons.append({"payload": state, "title": state}) 
+
         message = "Which state should the lawyer belong to?"
-        dispatcher.utter_message(text=message, buttons=buttons, force_reply=True)
+        dispatcher.utter_message(text=message, buttons=buttons, ignore_text=True)
 
         return []
     
@@ -145,8 +151,61 @@ class ActionOfferCOPOptions(Action):
             {"payload": "high", "title": "High"},
             {"payload": "supreme", "title": "Supreme"}
         ]
-        
+
         message = "What court should the lawyer practice in?"
-        dispatcher.utter_message(text=message, buttons=buttons, force_reply=True)
+        dispatcher.utter_message(text=message, buttons=buttons, ignore_text=True)
 
         return []
+
+def clean_name(name):
+    return "".join([c for c in name if c.isalpha()])
+
+class ValidateLawyerForm(FormValidationAction):
+    def name(self) -> Text:
+        return "validate_lawyer_form"
+        
+    def validate_state(
+        self,
+        slot_value: Any,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        """Validate `state` value."""
+        print(slot_value)
+        if slot_value in states:
+            return {"state": slot_value}
+        else:
+            dispatcher.utter_message(text="Incorrect option for state.")
+            return {"state": None}
+        
+    def validate_court_of_practice(
+        self,
+        slot_value: Any,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        """Validate `court_of_practice` value."""
+        print(slot_value)
+        if slot_value in ["district", "high", "supreme"]:
+            return {"court_of_practice": slot_value}
+        else:
+            dispatcher.utter_message(text="Incorrect option for cop.")
+            return {"court_of_practice": None}
+        
+class ValidatePredefinedSlots(ValidationAction):    
+    def validate_options(
+        self,
+        slot_value: Any,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        """Validate `options` value."""
+        print(slot_value)
+        if slot_value in ["/consumer_rights", "/request_lawyer", "/hindu_marriage"]:
+            return {"options": slot_value}
+        else:
+            dispatcher.utter_message(text="Incorrect option.")
+            return {"options": None}
