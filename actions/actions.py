@@ -66,13 +66,14 @@ class PrintLawyerInfo(Action):
                
         state = tracker.get_slot("state")
         court_of_practice = tracker.get_slot("court_of_practice")        
+        area_of_practice = tracker.get_slot("area_of_practice")
 
         # To check whether lawyer data for given requirement exists or not in the csv file
         flag = False 
 
 
         for row in data:
-            if row['state'] == state and row['court of practice'].find(court_of_practice) != -1:
+            if row['state'] == state and row['court of practice'].find(court_of_practice) != -1 and row['area of practice'].find(area_of_practice) != -1:
                 if row['address'] == "":
                     dispatcher.utter_message(text=f"Lawyer Name: {row['name']} \nLawyer State: {row['state']} \nAddress: Not Available")
                 else:
@@ -92,7 +93,7 @@ class ActionResetSlots(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         
-        return [SlotSet(slot, None) for slot in ["state", "court_of_practice"]]
+        return [SlotSet(slot, None) for slot in ["state", "court_of_practice", "area_of_practice"]]
     
 class ActionGreetUser(Action):
     def name(self) -> Text:
@@ -164,6 +165,27 @@ class ActionOfferCOPOptions(Action):
 
         return []
 
+class ActionOfferAOPOptions(Action):
+    def name(self) -> Text:
+        return "action_ask_area_of_practice"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        buttons = [
+            {"payload": "criminal", "title": "Criminal"},
+            {"payload": "civil", "title": "Civil"},
+            {"payload": "divorce", "title": "Divorce"},
+            {"payload": "sexual harassment", "title": "Sexual Harassment"},
+            {"payload": "child custody", "title": "Child Custody"}
+        ] 
+
+        message = "What is the type of case?"
+        dispatcher.utter_message(text=message, buttons=buttons, ignore_text=True)
+
+        return []
+
 class ValidateLawyerForm(FormValidationAction):
     def name(self) -> Text:
         return "validate_lawyer_form"
@@ -195,6 +217,20 @@ class ValidateLawyerForm(FormValidationAction):
         else:
             dispatcher.utter_message(text="Incorrect option for cop.")
             return {"court_of_practice": None}
+        
+    def validate_area_of_practice(
+        self,
+        slot_value: Any,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        """Validate `area_of_practice` value."""
+        if isinstance(slot_value, str):
+            return {"area_of_practice": slot_value}
+        else:
+            dispatcher.utter_message(text="Incorrect option for aop.")
+            return {"area_of_practice": None}
         
 class ValidatePredefinedSlots(ValidationAction):    
     def validate_options(

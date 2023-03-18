@@ -27,6 +27,7 @@ entities:
 - options
 - state
 - court_of_practice
+- area_of_practice
 
 slots:
   state:
@@ -46,6 +47,15 @@ slots:
       conditions:
       - active_loop: lawyer_form
         requested_slot: court_of_practice
+
+  area_of_practice:
+    type: text
+    influence_conversation: true
+    mappings:
+    - type: from_text
+      conditions:
+      - active_loop: lawyer_form
+        requested_slot: area_of_practice
 
 responses:
   utter_greet:
@@ -81,7 +91,7 @@ responses:
   # - text: what court should the lawyer practice in? {state} court or supreme court
 
   utter_lawyer_values:
-  - text: So {state} and {court_of_practice}
+  - text: So {state} and {court_of_practice} and {area_of_practice}
 
   utter_hindu_marriage:
   - text: A woman can seek the help of the police to help her stop her marriage if she is being forced to marry against her will. However, given the level of mistrust that prevails in our society vis-à-vis the police, such an intervention can boomerang on the woman and may lead to more trouble. In such situations, social pressure applied judiciously might work better on her parents as opposed to legal interventions. A young woman being forced to marry against her will by her parents should first try to identify and approach influential people within her own community or extended family who have the moral clout to influence her parent's decision. Alternatively, sympathetic teachers or respected social workers in the area could also be approached for help. However, these social interventions are outside the realm of legal rights and in extreme cases where social pressure does not work, police help may be sought.
@@ -168,6 +178,7 @@ actions:
 - utter_submit
 - action_ask_state
 - action_ask_court_of_practice
+- action_ask_area_of_practice
 - utter_lawyer_values
 - validate_lawyer_form
 - action_validate_slot_mappings
@@ -177,3 +188,4 @@ forms:
     required_slots:
     - state
     - court_of_practice
+    - area_of_practice
