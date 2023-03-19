@@ -90,11 +90,11 @@ nlu:
     - am I talking to a bot?
     - am I talking to a human?
 
-# - intent: request_options
-#   examples: |
-#     - i want to search for options
-#     - find options
-#     - what are options
+- intent: request_lawyer
+  examples: |
+    - i want to search for lawyer
+    - find lawyer
+    - look for lawyer
 
 - intent: request_case_study
   examples: |
@@ -175,7 +175,7 @@ nlu:
     - e-filling cases for supreme case
     - fill case online for supreme court
 
-- intent: sexual_harrasment
+- intent: sexual_harassment
   examples: |
     - sexual harassment at the workplace
     - what is sexual harassment for workplace

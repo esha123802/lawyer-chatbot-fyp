@@ -18,24 +18,24 @@ rules:
 #   - action: action_request_option
 #   - action: action_offer_options
 
-# - rule: Ask lawyer form
-#   steps:
-#   - intent: request_lawyer
-#   - action: lawyer_form
-#   - active_loop: lawyer_form
+- rule: Ask lawyer form
+  steps:
+  - intent: request_lawyer
+  - action: lawyer_form
+  - active_loop: lawyer_form
 
-# - rule: Submit lawyer form
-#   condition:
-#   - active_loop: lawyer_form
-#   steps:
-#   - action: lawyer_form
-#   - active_loop: null
-#   - slot_was_set:
-#     - requested_slot: null
-#   - action: utter_lawyer_values
-#   - action: action_print_lawyer_info
-#   - action: action_reset_lawyer_slots
-#   - action: action_offer_options
+- rule: Submit lawyer form
+  condition:
+  - active_loop: lawyer_form
+  steps:
+  - action: lawyer_form
+  - active_loop: null
+  - slot_was_set:
+    - requested_slot: null
+  - action: utter_lawyer_values
+  - action: action_submit_lawyer_form
+  # - action: action_reset_lawyer_slots
+  - action: action_offer_options
 
 - rule: Ask case study form
   steps:
@@ -52,6 +52,23 @@ rules:
   - slot_was_set:
     - requested_slot: null
   - action: utter_case_study_values
-  - action: action_print_case_study_info
-  - action: action_reset_case_study_slots
+  - action: action_submit_case_study_form
+  # - action: action_reset_case_study_slots
   - action: action_offer_options  
+
+- rule: Handle affirmation
+  steps:
+  - intent: affirm
+  - action: action_confirm_submission
+  - active_loop: null
+  - slot_was_set:
+    - requested_slot: null
+  - action: action_submit_forms
+
+- rule: Handle denial
+  steps:
+  - intent: deny
+  - action: action_reset_all_slots
+  - active_loop: null
+  - slot_was_set:
+    - requested_slot: null
