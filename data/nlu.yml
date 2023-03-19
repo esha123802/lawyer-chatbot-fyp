@@ -90,14 +90,17 @@ nlu:
     - am I talking to a bot?
     - am I talking to a human?
 
-- intent: request_lawyer
+# - intent: request_options
+#   examples: |
+#     - i want to search for options
+#     - find options
+#     - what are options
+
+- intent: request_case_study
   examples: |
-    - i want to search for [lawyers](options)
-    - find [lawyers](options)
-    - look for [lawyers](options)
-    - i want to search for [lawyer](options)
-    - find [lawyer](options)
-    - look for [lawyer](options)
+    - i want to search for case study
+    - find case study
+    - look for case study
 
 - intent: hindu_marriage
   examples: |
@@ -179,4 +182,3 @@ nlu:
     - what is harassment at the office
     - i feel harassed at the office
     - what is counted as sexual harassment
-

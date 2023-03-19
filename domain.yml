@@ -11,7 +11,9 @@ intents:
 - mood_great
 - mood_unhappy
 - bot_challenge
-- request_lawyer
+# - request_lawyer
+- request_case_study
+# - request_options
 - hindu_marriage
 - consumer_rights
 - copyright
@@ -22,12 +24,16 @@ intents:
 - senior_citizens
 - supreme_court
 - sexual_harassment
+- activate_lawyer_form
+- activate_case_study_form
 
 entities:
 - options
 - state
 - court_of_practice
 - area_of_practice
+- type_of_court
+- type_of_case
 
 slots:
   state:
@@ -56,6 +62,24 @@ slots:
       conditions:
       - active_loop: lawyer_form
         requested_slot: area_of_practice
+
+  type_of_court:
+    type: text
+    influence_conversation: true
+    mappings:
+    - type: from_text
+      conditions:
+      - active_loop: case_study_form
+        requested_slot: type_of_court
+
+  type_of_case:
+    type: text
+    influence_conversation: true
+    mappings:
+    - type: from_text
+      conditions:
+      - active_loop: case_study_form
+        requested_slot: type_of_case
 
 responses:
   utter_greet:
@@ -87,11 +111,11 @@ responses:
   utter_submit:
   - text: Ok.
 
-  # utter_ask_court_of_practice:
-  # - text: what court should the lawyer practice in? {state} court or supreme court
-
   utter_lawyer_values:
   - text: So {state} and {court_of_practice} and {area_of_practice}
+
+  utter_case_study_values:
+  - text: So {type_of_court} and {type_of_case}
 
   utter_hindu_marriage:
   - text: A woman can seek the help of the police to help her stop her marriage if she is being forced to marry against her will. However, given the level of mistrust that prevails in our society vis-à-vis the police, such an intervention can boomerang on the woman and may lead to more trouble. In such situations, social pressure applied judiciously might work better on her parents as opposed to legal interventions. A young woman being forced to marry against her will by her parents should first try to identify and approach influential people within her own community or extended family who have the moral clout to influence her parent's decision. Alternatively, sympathetic teachers or respected social workers in the area could also be approached for help. However, these social interventions are outside the realm of legal rights and in extreme cases where social pressure does not work, police help may be sought.
@@ -172,15 +196,21 @@ responses:
 actions:
 - action_request_option
 - action_print_lawyer_info
-- action_reset_all_slots
+- action_print_case_study_info
+- action_reset_lawyer_slots
+- action_reset_case_study_slots
 - action_offer_options
-- action_handle_option_selection
 - utter_submit
 - action_ask_state
 - action_ask_court_of_practice
 - action_ask_area_of_practice
+- action_ask_type_of_court
+- action_ask_type_of_case
 - utter_lawyer_values
+- utter_case_study_values
 - validate_lawyer_form
+- validate_case_study_form
+- validate_options
 - action_validate_slot_mappings
 
 forms:
@@ -189,3 +219,8 @@ forms:
     - state
     - court_of_practice
     - area_of_practice
+
+  case_study_form:
+    required_slots:
+    - type_of_court
+    - type_of_case
