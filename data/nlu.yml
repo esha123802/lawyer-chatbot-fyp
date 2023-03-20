@@ -182,3 +182,15 @@ nlu:
     - what is harassment at the office
     - i feel harassed at the office
     - what is counted as sexual harassment
+  
+- intent: confirm_keywords
+  examples: |
+    - Yes, those are the correct keywords.
+    - That's right, add those keywords.
+    - I confirm, add those keywords.
+
+- intent: deny_keywords
+  examples: |
+    - No, I don't want to add any keywords.
+    - That's not right, don't add those keywords.
+    - I deny, don't add those keywords.

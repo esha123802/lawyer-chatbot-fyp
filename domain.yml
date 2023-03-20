@@ -24,6 +24,9 @@ intents:
 - senior_citizens
 - supreme_court
 - sexual_harassment
+- get_keywords
+- confirm_keywords
+- deny_keywords
 
 entities:
 - options
@@ -32,6 +35,7 @@ entities:
 # - area_of_practice
 - type_of_court
 - type_of_case
+- keywords
 
 slots:
   state:
@@ -44,24 +48,6 @@ slots:
         requested_slot: state
       - active_loop: case_study_form
         requested_slot: state
-
-  # court_of_practice:
-  #   type: text
-  #   influence_conversation: true
-  #   mappings:
-  #   - type: from_text
-      # conditions:
-      # - active_loop: lawyer_form
-      #   requested_slot: court_of_practice
-
-  # area_of_practice:
-  #   type: text
-  #   influence_conversation: true
-  #   mappings:
-  #   - type: from_text
-      # conditions:
-      # - active_loop: lawyer_form
-      #   requested_slot: area_of_practice
 
   type_of_court:
     type: text
@@ -84,6 +70,17 @@ slots:
         requested_slot: type_of_case
       - active_loop: case_study_form
         requested_slot: type_of_case
+
+  keywords:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: from_text
+      conditions:
+      - active_loop: case_study_form
+        requested_slot: keywords
+
 
 responses:
   utter_greet:
@@ -119,7 +116,7 @@ responses:
   - text: So {state} and {type_of_court} and {type_of_case}
 
   utter_case_study_values:
-  - text: So {state} {type_of_court} and {type_of_case}
+  - text: So {state}, {type_of_court}, {type_of_case} and {keywords}
 
   utter_hindu_marriage:
   - text: A woman can seek the help of the police to help her stop her marriage if she is being forced to marry against her will. However, given the level of mistrust that prevails in our society vis-à-vis the police, such an intervention can boomerang on the woman and may lead to more trouble. In such situations, social pressure applied judiciously might work better on her parents as opposed to legal interventions. A young woman being forced to marry against her will by her parents should first try to identify and approach influential people within her own community or extended family who have the moral clout to influence her parent's decision. Alternatively, sympathetic teachers or respected social workers in the area could also be approached for help. However, these social interventions are outside the realm of legal rights and in extreme cases where social pressure does not work, police help may be sought.
@@ -211,6 +208,8 @@ actions:
 # - action_ask_area_of_practice
 - action_ask_type_of_court
 - action_ask_type_of_case
+- action_ask_keywords
+- action_set_keywords
 - action_confirm_submission
 - validate_lawyer_form
 # - validate_case_study_form
@@ -223,12 +222,13 @@ actions:
 forms:
   lawyer_form:
     required_slots:
-    - state
     - type_of_court
+    - state
     - type_of_case
 
   case_study_form:
     required_slots:
-    - state
     - type_of_court
+    - state
     - type_of_case
+    - keywords
