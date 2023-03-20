@@ -50,6 +50,16 @@ worksheet = client.open_by_key(spreadsheet_id).sheet1
 # Read the data from the worksheet
 data = worksheet.get_all_records()
 
+from nltk.stem import PorterStemmer
+from nltk.tokenize import word_tokenize
+stemmer = PorterStemmer()
+ 
+# stem words in the list of tokenized words
+def stem_words(keywords):
+    stems = [stemmer.stem(word) for word in keywords]
+    print("here" + str(stems))
+    return stems
+
 states = set()
 
 for row in data:
@@ -117,32 +127,24 @@ class SubmitCaseStudyInfo(Action):
         type_of_court = tracker.get_slot("type_of_court")        
         state = tracker.get_slot("state") 
         type_of_case = tracker.get_slot("type_of_case")
+        keywords = tracker.get_slot("keywords") 
 
-        # keyword_set = type_of_case + type_of_court
-        # token_ids = tokenizer.encode(keyword_set, add_special_tokens=True)
-
-        # inputs = tf.constant([token_ids])
-        # outputs = model(inputs)[0]
-        # vector_representation = outputs[:, 0, :]    
-        # new_keyword_set = "grape, kiwi, mango"
-        # new_token_ids = tokenizer.encode(new_keyword_set, add_special_tokens=True)
-        # new_inputs = tf.constant([new_token_ids])
-        # new_outputs = model(new_inputs)[0]
-        # new_vector_representation = new_outputs[:, 0, :]
-
-        # similarity_score = cosine_similarity(new_vector_representation, existing_vector_representations[0])        
+        [x.lower() for x in keywords]
+        print(keywords)   
+        stem_words(keywords)     
 
         flag = False 
 
         for row in data:
-            if row[2].find(state) != -1 or row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1:
-                dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
-                flag = True
+            res = [word for word in keywords if (word in row[2])]
+            if row[2].find(state) != -1 or row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1 or res == True:
+                    dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
+                    flag = True
 
         if not flag:
             dispatcher.utter_message("No data found")
 
-        return [SlotSet("state", None), SlotSet("type_of_court", None), SlotSet("type_of_case", None)]
+        return [SlotSet("state", None), SlotSet("type_of_court", None), SlotSet("type_of_case", None), SlotSet("opt_keywords", None), SlotSet("keywords", None)]
     
 class ActionGreetUser(Action):
     def name(self) -> Text:
@@ -174,7 +176,7 @@ class ActionOfferOptions(Action):
         dispatcher.utter_message(text=message, buttons=buttons, ignore_text=True)
         
         return []
-        
+    
 class ActionOfferTOCOptions(Action):
     def name(self) -> Text:
         return "action_ask_type_of_court"
@@ -186,15 +188,14 @@ class ActionOfferTOCOptions(Action):
         buttons = [
             {"payload": "district", "title": "District"},
             {"payload": "high", "title":"High"},
-            {"payload": "supreme", "title": "Supreme"},
-            {"payload": None, "title": "None"}
+            {"payload": "supreme", "title": "Supreme"}
         ]
 
         message = "What type of court is your case in?"
         dispatcher.utter_message(text=message, buttons=buttons)
 
         return []
-    
+
 class ActionOfferStateOptions(Action):
     def name(self) -> Text:
         return "action_ask_state"
@@ -203,23 +204,16 @@ class ActionOfferStateOptions(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        if tracker.get_slot("type_of_court") == "supreme":
-            return [SlotSet("state", "default", {"requested_slot": None})]
-
         buttons = []
-        
-        buttons.append({"payload": None, "title": "None"})
 
         for state in states:
-                buttons.append({"payload": state, "title": state}) 
-
+            buttons.append({"payload": state, "title": state}) 
 
         message = "Which state should the case belong to?"
         dispatcher.utter_message(text=message, buttons=buttons)
 
         return []
-
-
+    
 class ActionOfferTOCaOptions(Action):
     def name(self) -> Text:
         return "action_ask_type_of_case"
@@ -233,11 +227,28 @@ class ActionOfferTOCaOptions(Action):
             {"payload": "civil", "title": "Civil"},
             {"payload": "divorce", "title": "Divorce"},
             {"payload": "sexual harassment", "title": "Sexual Harassment"},
-            {"payload": "child custody", "title": "Child Custody"},
-            {"payload": None, "title": "None"}
+            {"payload": "child custody", "title": "Child Custody"}
         ] 
 
         message = "What type of case do you have?"
+        dispatcher.utter_message(text=message, buttons=buttons)
+
+        return []
+
+class ActionOfferOptKeywordsOptions(Action):
+    def name(self) -> Text:
+        return "action_ask_opt_keywords"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        buttons = [
+            {"payload": "yes", "title": "Yes"},
+            {"payload": "no", "title": "No"}
+        ] 
+
+        message = "Do you want to add any keywords?"
         dispatcher.utter_message(text=message, buttons=buttons)
 
         return []
@@ -250,35 +261,28 @@ class ActionOfferKeywordsOptions(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         
-        buttons = [
-            {"payload": "/confirm_keywords", "title": "Yes"},
-            {"payload": "/deny_keywords", "title": "No"}
-        ]
-
-        message = "Do you want to add any keywords?"
-        dispatcher.utter_message(text=message, buttons=buttons)
-
-        return []
-    
-class SetKeywords(Action):
-    def name(self) -> Text:
-        return "action_set_keywords"
-
-    def run(self, dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-
-        keywords = tracker.latest_message.get("text", "").split()
-
-        if keywords:
+            message = "Mention additional keywords (comma separated)"
+            dispatcher.utter_message(text=message)
+            text_data = tracker.latest_message.get("text")
+            keywords = list(text_data.split(","))    
             return [SlotSet("keywords", keywords)]
-        else:
-            return [SlotSet("keywords", None)]
-
-
+    
 class ValidateLawyerForm(FormValidationAction):
     def name(self) -> Text:
         return "validate_lawyer_form"
+    
+    async def required_slots(
+        self,
+        domain_slots: List[Text],
+        dispatcher: "CollectingDispatcher",
+        tracker: "Tracker",
+        domain: "DomainDict",
+    ) -> List[Text]:
+        updated_slots = domain_slots.copy()
+        if tracker.slots.get("type_of_court") == "supreme":
+            updated_slots.remove("state")
+
+        return updated_slots
         
     def validate_state(
         self,
@@ -288,6 +292,7 @@ class ValidateLawyerForm(FormValidationAction):
         domain: DomainDict,
     ) -> Dict[Text, Any]:
         """Validate `state` value."""
+        print(slot_value)
         if slot_value in states:
             return {"state": slot_value}
         else:
@@ -322,9 +327,22 @@ class ValidateLawyerForm(FormValidationAction):
             dispatcher.utter_message(text="Incorrect option for tocc.")
             return {"type_of_case": None}
         
-# class ValidateCaseStudyForm(FormValidationAction):
-#     def name(self) -> Text:
-#         return "validate_case_study_form"
+class ValidateCaseStudyForm(FormValidationAction):
+    def name(self) -> Text:
+        return "validate_case_study_form"
+    
+    async def required_slots(
+        self,
+        domain_slots: List[Text],
+        dispatcher: "CollectingDispatcher",
+        tracker: "Tracker",
+        domain: "DomainDict",
+    ) -> List[Text]:
+        updated_slots = domain_slots.copy()
+        if tracker.slots.get("opt_keywords") == "no":
+            updated_slots.remove("keywords")
+
+        return updated_slots
     
 #     def validate_state(
 #         self,
@@ -392,12 +410,3 @@ class ActionHandleAffirmation(Action):
         # Do something in response to an affirmative response, e.g. confirm submission
         dispatcher.utter_message("Great, we will submit your form. Is there anything else I can help with?")
         return []
-
-# class ActionHandleDenial(Action):
-#     def name(self) -> Text:
-#         return "action_handle_denial"
-
-#     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-#         # Do something in response to a negative response, e.g. ask for more information
-
-
