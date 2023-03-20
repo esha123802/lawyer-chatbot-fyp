@@ -339,6 +339,8 @@ class ValidateCaseStudyForm(FormValidationAction):
         domain: "DomainDict",
     ) -> List[Text]:
         updated_slots = domain_slots.copy()
+        if tracker.slots.get("type_of_court") == "supreme":
+            updated_slots.remove("state")
         if tracker.slots.get("opt_keywords") == "no":
             updated_slots.remove("keywords")
 
