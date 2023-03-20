@@ -100,12 +100,20 @@ class SubmitLawyerInfo(Action):
         flag = False 
 
         for row in data:
-            if row['state'] == state or row['court of practice'].find(type_of_court) != -1 or row['area of practice'].find(type_of_case) != -1:
-                if row['address'] == "":
-                    dispatcher.utter_message(text=f"Lawyer Name: {row['name']} \nLawyer State: {row['state']} \nAddress: Not Available")
-                else:
-                    dispatcher.utter_message(text=f"Lawyer Name: {row['name']} \nLawyer State: {row['state']} \nAddress: {row['address']}")
-                flag = True
+            if type_of_court == "supreme":
+                if row['court of practice'].find(type_of_court) != -1 and row['area of practice'].find(type_of_case) != -1:
+                    if row['address'] == "":
+                        dispatcher.utter_message(text=f"Lawyer Name: {row['name']} \nLawyer State: {row['state']} \nAddress: Not Available")
+                    else:
+                        dispatcher.utter_message(text=f"Lawyer Name: {row['name']} \nLawyer State: {row['state']} \nAddress: {row['address']}")
+                    flag = True
+            else:
+                if row['state'] == state and row['court of practice'].find(type_of_court) != -1 and row['area of practice'].find(type_of_case) != -1:
+                    if row['address'] == "":
+                        dispatcher.utter_message(text=f"Lawyer Name: {row['name']} \nLawyer State: {row['state']} \nAddress: Not Available")
+                    else:
+                        dispatcher.utter_message(text=f"Lawyer Name: {row['name']} \nLawyer State: {row['state']} \nAddress: {row['address']}")
+                    flag = True
         
         if not flag:
             dispatcher.utter_message("No data found")
@@ -129,17 +137,31 @@ class SubmitCaseStudyInfo(Action):
         type_of_case = tracker.get_slot("type_of_case")
         keywords = tracker.get_slot("keywords") 
 
-        [x.lower() for x in keywords]
-        print(keywords)   
-        stem_words(keywords)     
+        if keywords != None:
+            [x.lower() for x in keywords]
+            print(keywords)   
+            stem_words(keywords)     
 
         flag = False 
 
         for row in data:
-            res = [word for word in keywords if (word in row[2])]
-            if row[2].find(state) != -1 or row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1 or res == True:
-                    dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
-                    flag = True
+            if keywords != None:
+                res = [word for word in keywords if (word in row[2])]
+                if type_of_court == "supreme":
+                    if row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1 or res == True:
+                        dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
+                        flag = True
+                elif row[2].find(state) != -1 or row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1 or res == True:
+                        dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
+                        flag = True
+            else:
+                if type_of_court == "supreme":
+                    if row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1:
+                        dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
+                        flag = True
+                elif row[2].find(state) != -1 or row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1:
+                        dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
+                        flag = True
 
         if not flag:
             dispatcher.utter_message("No data found")

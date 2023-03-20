@@ -118,18 +118,22 @@ responses:
   - text: Ok.
 
   utter_lawyer_values:
-  - text: So {state} and {type_of_court} and {type_of_case}
+  - text: "Your input is \nCourt of practice - {type_of_court} \nState - {state} \nType of case - {type_of_case}"
 
   utter_case_study_values:
-  - text: So {state}, {type_of_court}, {type_of_case}, and {keywords}
+  - text: "Your input is \nCourt of practice - {type_of_court} \nState - {state} \nType of case - {type_of_case} \nKeywords - {keywords}" 
 
   utter_hindu_marriage:
   - text: A woman can seek the help of the police to help her stop her marriage if she is being forced to marry against her will. However, given the level of mistrust that prevails in our society vis-à-vis the police, such an intervention can boomerang on the woman and may lead to more trouble. In such situations, social pressure applied judiciously might work better on her parents as opposed to legal interventions. A young woman being forced to marry against her will by her parents should first try to identify and approach influential people within her own community or extended family who have the moral clout to influence her parent's decision. Alternatively, sympathetic teachers or respected social workers in the area could also be approached for help. However, these social interventions are outside the realm of legal rights and in extreme cases where social pressure does not work, police help may be sought.
 
   utter_consumer_rights:
-  - text: |-
-      The consumer has the following rights :-1. The right to be protected against the marketing of goods and services which are hazardous to life and property; 2. The right to be informed about the quality,quantity,potency,purity,standard and price of goods or services so as to protect the consumer against unfair trade practices;3. The right to be assured, wherever possible, access to a variety of goods and services at competitive prices;4. The right to be heard and to be assured that consumer's interests will receive due consideration at appropriate for a;
-      5. The right to seek redressal against unfair trade practices or restrictive trade practices or unscrupulous exploitation of consumers and6. The right to consumer education.
+  - text: 
+      "The consumer has the following rights :-
+      \n1. The right to be protected against the marketing of goods and services which are hazardous to life and property.
+      \n2. The right to be informed about the quality,quantity,potency,purity,standard and price of goods or services so as to protect the consumer against unfair trade practices.
+      \n3. The right to be assured, wherever possible, access to a variety of goods and services at competitive prices. 
+      \n4. The right to be heard and to be assured that consumer's interests will receive due consideration at appropriate.
+      \n5. The right to seek redressal against unfair trade practices or restrictive trade practices or unscrupulous exploitation of consumers and6. The right to consumer education."
   
   utter_copyright:
   - text: |-
@@ -149,7 +153,7 @@ responses:
   utter_disability:
   - text: |-
       In consonance with the policy of empowerment of persons with disabilities and in order to effectively deal with their multi dimensional problems, the following National Institutes/Apex level institutions have been setup in each major area of disability:-
-      (a) National Institute for the Visually Handicapped, Dehradun
+      (i) National Institute for the Visually Handicapped, Dehradun
       (ii) National Institute for the Orthopaedically Handicapped, Calcutta.
       (iii) Ali Yavar Jung National Institute for the Hearing Handicapped, Mumbai
       (iv) National Institute for Mentally Handicapped, Secunderabad.
