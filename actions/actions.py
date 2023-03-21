@@ -191,7 +191,7 @@ class ActionOfferOptions(Action):
         buttons = [
             {"payload": "/request_case_study", "title": "Case Study"},
             {"payload": "/request_lawyer", "title": "Lawyer Information"},
-            {"payload": "/consumer_rights", "title": "General Question"}
+            {"payload": "/gen_questions", "title": "General Question"}
         ]
 
         message = "Please select an option:"
@@ -396,19 +396,33 @@ class ValidateCaseStudyForm(FormValidationAction):
 #             dispatcher.utter_message(text="Incorrect option for toc.")
 #             return {"type_of_court": None}
         
-#     def validate_type_of_case(
-#         self,
-#         slot_value: Any,
-#         dispatcher: CollectingDispatcher,
-#         tracker: Tracker,
-#         domain: DomainDict,
-#     ) -> Dict[Text, Any]:
-#         """Validate `type_of_case` value."""
-#         if isinstance(slot_value, str):
-#             return {"type_of_case": slot_value}
-#         else:
-#             dispatcher.utter_message(text="Incorrect option for tocc.")
-#             return {"type_of_case": None}
+    # def validate_type_of_case(
+    #     self,
+    #     slot_value: Any,
+    #     dispatcher: CollectingDispatcher,
+    #     tracker: Tracker,
+    #     domain: DomainDict,
+    # ) -> Dict[Text, Any]:
+    #     """Validate `type_of_case` value."""
+    #     if isinstance(slot_value, str):
+    #         return {"type_of_case": slot_value}
+    #     else:
+    #         dispatcher.utter_message(text="Incorrect option for tocc.")
+    #         return {"type_of_case": None}
+
+    def validate_opt_keywords(
+        self,
+        slot_value: Any,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        """Validate `opt_keywords` value."""
+        if slot_value in ["yes", "no"]:
+            return {"opt_keywords": slot_value}
+        else:
+            dispatcher.utter_message(text="Incorrect option for opting keywords.")
+            return {"opt_keywords": None}
         
 # class ValidatePredefinedSlots(ValidationAction):    
 #     def validate_options(

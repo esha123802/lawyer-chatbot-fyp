@@ -67,3 +67,9 @@ stories:
   - intent: sexual_harassment
   - action: utter_sexual_harassment
   - action: action_offer_options
+
+- story: general questions
+  steps:
+  - intent: gen_questions
+  - action: utter_gen_questions
+  - action: action_offer_options
