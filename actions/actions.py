@@ -57,7 +57,6 @@ stemmer = PorterStemmer()
 # stem words in the list of tokenized words
 def stem_words(keywords):
     stems = [stemmer.stem(word) for word in keywords]
-    print("here" + str(stems))
     return stems
 
 states = set()
@@ -82,7 +81,7 @@ class ActionHelloWorld(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        dispatcher.utter_message(text="Enter option: \n1. Case Study \n2. Lawyer Information \n3. General Question \n")
+        dispatcher.utter_message(text="Hi. Welcome to our chatbot!\n")
 
         return []   
 
@@ -135,35 +134,60 @@ class SubmitCaseStudyInfo(Action):
         type_of_court = tracker.get_slot("type_of_court")        
         state = tracker.get_slot("state") 
         type_of_case = tracker.get_slot("type_of_case")
-        keywords = tracker.get_slot("keywords") 
+        keywords = tracker.get_slot("keywords")
+        keywords = list(keywords.split(", "))
 
         if keywords != None:
             [x.lower() for x in keywords]
-            print(keywords)   
             stem_words(keywords)     
 
         flag = False 
 
         for row in data:
             if keywords != None:
-                res = [word for word in keywords if (word in row[2])]
-                if type_of_court == "supreme":
-                    if row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1 or res == True:
-                        dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
-                        flag = True
-                elif row[2].find(state) != -1 or row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1 or res == True:
-                        dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
-                        flag = True
-            else:
-                if type_of_court == "supreme":
-                    if row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1:
-                        dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
-                        flag = True
-                elif row[2].find(state) != -1 or row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1:
-                        dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
-                        flag = True
+                li = list(row[2].split(", "))
+                if all(("'" + item + "'") in li for item in keywords):
+                    dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
+                    flag = True
+        #             # if type_of_court == "supreme":
+        #             #     if row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1:
+        #             #         dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
+        #             #         flag = True
+        #             # elif row[2].find(state) != -1 or row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1:
+        #             #         dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
+        #             #         flag = True
+        #     # else:
+        #     #     if type_of_court == "supreme":
+        #     #         if row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1:
+        #     #             dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
+        #     #             flag = True
+        #     #     elif row[2].find(state) != -1 or row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1:
+        #     #             dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
+        #     #             flag = True
+
+        # # print("222")
+
+        # for row in data:
+        #     if keywords != None:
+        #         res = [word for word in keywords if (word in row[2])]
+        #         if type_of_court == "supreme":
+        #             if row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1 or res == True:
+        #                 dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
+        #                 flag = True
+        #         elif row[2].find(state) != -1 or row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1 or res == True:
+        #                 dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
+        #                 flag = True
+        #     else:
+        #         if type_of_court == "supreme":
+        #             if row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1:
+        #                 dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
+        #                 flag = True
+        #         elif row[2].find(state) != -1 or row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1:
+        #                 dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
+        #                 flag = True
 
         if not flag:
+            # print("333")
             dispatcher.utter_message("No data found")
 
         return [SlotSet("state", None), SlotSet("type_of_court", None), SlotSet("type_of_case", None), SlotSet("opt_keywords", None), SlotSet("keywords", None)]
@@ -208,7 +232,7 @@ class ActionOfferTOCOptions(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
         buttons = [
-            {"payload": "district", "title": "District"},
+            # {"payload": "district", "title": "District"},
             {"payload": "high", "title":"High"},
             {"payload": "supreme", "title": "Supreme"}
         ]
@@ -329,7 +353,7 @@ class ValidateLawyerForm(FormValidationAction):
         domain: DomainDict,
     ) -> Dict[Text, Any]:
         """Validate `type_of_court` value."""
-        if slot_value in ["district", "high", "supreme"]:
+        if slot_value in ["high", "supreme"]:
             return {"type_of_court": slot_value}
         else:
             dispatcher.utter_message(text="Incorrect option for toc.")

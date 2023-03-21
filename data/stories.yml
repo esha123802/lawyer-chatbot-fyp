@@ -72,4 +72,3 @@ stories:
   steps:
   - intent: gen_questions
   - action: utter_gen_questions
-  - action: action_offer_options

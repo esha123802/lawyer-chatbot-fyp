@@ -77,7 +77,7 @@ slots:
         requested_slot: opt_keywords
 
   keywords:
-    type: list
+    type: text
     influence_conversation: true
     mappings:
     - type: from_text
