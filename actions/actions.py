@@ -19,6 +19,10 @@ import csv
 import gspread
 import asyncio
 
+import numpy as np
+# from sklearn.metrics.pairwise import cosine_similarity
+# from sklearn.feature_extraction.text import CountVectorizer
+
 from oauth2client.service_account import ServiceAccountCredentials
 
 # import tensorflow as tf
@@ -58,6 +62,17 @@ stemmer = PorterStemmer()
 def stem_words(keywords):
     stems = [stemmer.stem(word) for word in keywords]
     return stems
+
+from difflib import get_close_matches
+
+def are_all_similar_words_in_set(input_words, word_set, i):
+    # Find the similar words in the word set for each input word
+    similar_words = [get_close_matches(word, word_set, n=1, cutoff=0.8)[0]
+                     for word in input_words
+                     if get_close_matches(word, word_set, n=1, cutoff=0.8)]
+
+    # Check if 75% of the input words have at least one similar word in the set
+    return (len(similar_words)/len(input_words) >= 0.75)
 
 states = set()
 
@@ -131,63 +146,28 @@ class SubmitCaseStudyInfo(Action):
         file_path = 'C:/Users/Esha Srivastav/Desktop/dev/fyp/Judgement_cases.csv'
         data = read_csv_file(file_path)
 
-        type_of_court = tracker.get_slot("type_of_court")        
-        state = tracker.get_slot("state") 
-        type_of_case = tracker.get_slot("type_of_case")
+        # type_of_court = tracker.get_slot("type_of_court")        
+        # state = tracker.get_slot("state") 
+        # type_of_case = tracker.get_slot("type_of_case")
         keywords = tracker.get_slot("keywords")
-        keywords = list(keywords.split(", "))
-
-        if keywords != None:
-            [x.lower() for x in keywords]
-            stem_words(keywords)     
-
+        
         flag = False 
 
-        for row in data:
-            if keywords != None:
-                li = list(row[2].split(", "))
-                if all(("'" + item + "'") in li for item in keywords):
-                    dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
-                    flag = True
-        #             # if type_of_court == "supreme":
-        #             #     if row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1:
-        #             #         dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
-        #             #         flag = True
-        #             # elif row[2].find(state) != -1 or row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1:
-        #             #         dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
-        #             #         flag = True
-        #     # else:
-        #     #     if type_of_court == "supreme":
-        #     #         if row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1:
-        #     #             dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
-        #     #             flag = True
-        #     #     elif row[2].find(state) != -1 or row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1:
-        #     #             dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
-        #     #             flag = True
+        i = 1
 
-        # # print("222")
-
-        # for row in data:
-        #     if keywords != None:
-        #         res = [word for word in keywords if (word in row[2])]
-        #         if type_of_court == "supreme":
-        #             if row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1 or res == True:
-        #                 dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
-        #                 flag = True
-        #         elif row[2].find(state) != -1 or row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1 or res == True:
-        #                 dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
-        #                 flag = True
-        #     else:
-        #         if type_of_court == "supreme":
-        #             if row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1:
-        #                 dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
-        #                 flag = True
-        #         elif row[2].find(state) != -1 or row[2].find(type_of_court) != -1 or row[2].find(type_of_case) != -1:
-        #                 dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
-        #                 flag = True
+        if keywords != None:
+            keywords = list(keywords.split(", "))
+            [x.lower() for x in keywords]
+            stem_words(keywords)   
+            for row in data:
+                all_keywords = list(row[2].split(", "))
+                mod_keywords = [w.replace("'", "") for w in all_keywords]
+                if are_all_similar_words_in_set(keywords, mod_keywords, i) is True: 
+                        dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
+                        flag = True
+                i+=1
 
         if not flag:
-            # print("333")
             dispatcher.utter_message("No data found")
 
         return [SlotSet("state", None), SlotSet("type_of_court", None), SlotSet("type_of_case", None), SlotSet("opt_keywords", None), SlotSet("keywords", None)]
