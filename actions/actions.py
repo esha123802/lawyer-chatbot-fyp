@@ -70,6 +70,8 @@ def are_all_similar_words_in_set(input_words, word_set, i):
     similar_words = [get_close_matches(word, word_set, n=1, cutoff=0.8)[0]
                      for word in input_words
                      if get_close_matches(word, word_set, n=1, cutoff=0.8)]
+    
+    print(str(i) + " " + str(similar_words))
 
     # Check if 75% of the input words have at least one similar word in the set
     return (len(similar_words)/len(input_words) >= 0.75)
@@ -162,7 +164,9 @@ class SubmitCaseStudyInfo(Action):
             for row in data:
                 all_keywords = list(row[2].split(", "))
                 mod_keywords = [w.replace("'", "") for w in all_keywords]
-                if are_all_similar_words_in_set(keywords, mod_keywords, i) is True: 
+                mod1_keywords = [w.replace("[", "") for w in mod_keywords]
+                mod2_keywords = [w.replace("]", "") for w in mod1_keywords]
+                if are_all_similar_words_in_set(keywords, mod2_keywords, i) is True: 
                         dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
                         flag = True
                 i+=1
