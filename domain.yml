@@ -116,10 +116,10 @@ responses:
   - text: Ok.
 
   utter_lawyer_values:
-  - text: "Your input is \nCourt of practice - {type_of_court} \nState - {state} \nType of case - {type_of_case}"
+  - text: "Your input is \nCourt - {state} \nType of case - {type_of_case}"
 
   utter_case_study_values:
-  - text: "Your input is \nCourt of practice - {type_of_court} \nState - {state} \nType of case - {type_of_case} \nKeywords - {keywords}" 
+  - text: "Your input is \nCourt - {state} \nType of case - {type_of_case} \nKeywords - {keywords}" 
 
   utter_hindu_marriage:
   - text: A woman can seek the help of the police to help her stop her marriage if she is being forced to marry against her will. However, given the level of mistrust that prevails in our society vis-à-vis the police, such an intervention can boomerang on the woman and may lead to more trouble. In such situations, social pressure applied judiciously might work better on her parents as opposed to legal interventions. A young woman being forced to marry against her will by her parents should first try to identify and approach influential people within her own community or extended family who have the moral clout to influence her parent's decision. Alternatively, sympathetic teachers or respected social workers in the area could also be approached for help. However, these social interventions are outside the realm of legal rights and in extreme cases where social pressure does not work, police help may be sought.
@@ -221,19 +221,15 @@ actions:
 - action_request_option
 - action_submit_lawyer_form
 - action_submit_case_study_form
-- action_reset_all_slots
 - action_greet_user
 - action_offer_options
 - action_ask_state
-- action_ask_type_of_court
 - action_ask_type_of_case
 - action_ask_opt_keywords
 - action_ask_keywords
 - action_confirm_submission
 - validate_lawyer_form
 - validate_case_study_form
-# - validate_options
-# - action_validate_slot_mappings
 - utter_lawyer_values
 - utter_case_study_values
 - action_submit_forms
@@ -241,13 +237,11 @@ actions:
 forms:
   lawyer_form:
     required_slots:
-    - type_of_court
     - state
     - type_of_case
 
   case_study_form:
     required_slots:
-    - type_of_court
     - state
     - type_of_case
     - opt_keywords

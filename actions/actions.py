@@ -1,12 +1,3 @@
-# This files contains your custom actions which can be used to run
-# custom Python code.
-#
-# See this guide on how to implement these action:
-# https://rasa.com/docs/rasa/custom-actions
-
-
-# This is a simple example for a custom action which utters "Hello World!"
-
 from typing import Any, Text, Dict, List
 
 from rasa_sdk import Action, Tracker, FormValidationAction, ValidationAction
@@ -14,41 +5,28 @@ from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
 from rasa_sdk.types import DomainDict
 
-import os
 import csv
 import gspread
-import asyncio
 
 import numpy as np
-# from sklearn.metrics.pairwise import cosine_similarity
-# from sklearn.feature_extraction.text import CountVectorizer
 
 from oauth2client.service_account import ServiceAccountCredentials
 
-# import tensorflow as tf
-# from transformers import BertTokenizer, TFBertModel
 from sklearn.metrics.pairwise import cosine_similarity
 
-# tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-# model = TFBertModel.from_pretrained('bert-base-uncased')
 
-# Define the scope of the Google Sheets API
 scope = ['https://www.googleapis.com/auth/spreadsheets']
 
-# Set the path to the credentials file for your GCP project
 credentials_path = 'C:/Users/Esha Srivastav/Desktop/dev/fyp/rasa-fyp-a5e02f110091.json'
 
-# Authenticate your project using the credentials file
 credentials = ServiceAccountCredentials.from_json_keyfile_name(credentials_path, scope)
 
-# Set the ID of the Google Sheets spreadsheet you want to access
-spreadsheet_id = '1HZ6FwP0u_zT4pbgFWusInln7p1Nmp6H388jsDsuBq6o' # final
-# spreadsheet_id = '1SfZcwQ9TuT2BTGRHxS-YEMZjHCwgsFyTJQ2cPGND6ws'
+# Google sheets id for Lawyer Information
+spreadsheet_id = '1HZ6FwP0u_zT4pbgFWusInln7p1Nmp6H388jsDsuBq6o' 
 
-# Create a client to access the Google Sheets API
 client = gspread.authorize(credentials)
 
-# Open the worksheet you want to read data from
+# Open the worksheet for Lawyer Information
 worksheet = client.open_by_key(spreadsheet_id).sheet1
 
 # Read the data from the worksheet
@@ -74,7 +52,7 @@ def are_all_similar_words_in_set(input_words, word_set, i):
     print(str(i) + " " + str(similar_words))
 
     # Check if 75% of the input words have at least one similar word in the set
-    return (len(similar_words)/len(input_words) >= 0.75)
+    return (len(similar_words)/len(input_words) > 0)
 
 states = set()
 
@@ -88,6 +66,18 @@ def read_csv_file(file_path):
         for row in reader:
             data.append(row)
     return data
+
+class ActionGreetUser(Action):
+    def name(self) -> Text:
+        return "action_greet_user"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        dispatcher.utter_message("Hello! How can I help you today?")
+
+        return []
 
 class ActionHelloWorld(Action):
 
@@ -107,8 +97,7 @@ class SubmitLawyerInfo(Action):
         return "action_submit_lawyer_form"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-               
-        type_of_court = tracker.get_slot("type_of_court")        
+                     
         state = tracker.get_slot("state")
         type_of_case = tracker.get_slot("type_of_case")
 
@@ -116,15 +105,22 @@ class SubmitLawyerInfo(Action):
         flag = False 
 
         for row in data:
-            if type_of_court == "supreme":
-                if row['court of practice'].find(type_of_court) != -1 and row['area of practice'].find(type_of_case) != -1:
+            if state == "supreme":
+                if row['court of practice'].find(state) != -1 and (row['area of practice'].find(type_of_case) != -1 or type_of_case == "none"):
+                    if row['address'] == "":
+                        dispatcher.utter_message(text=f"Lawyer Name: {row['name']} \nLawyer State: {row['state']} \nAddress: Not Available")
+                    else:
+                        dispatcher.utter_message(text=f"Lawyer Name: {row['name']} \nLawyer State: {row['state']} \nAddress: {row['address']}")
+                    flag = True
+            elif state == "none":
+                if row['area of practice'].find(type_of_case) != -1:
                     if row['address'] == "":
                         dispatcher.utter_message(text=f"Lawyer Name: {row['name']} \nLawyer State: {row['state']} \nAddress: Not Available")
                     else:
                         dispatcher.utter_message(text=f"Lawyer Name: {row['name']} \nLawyer State: {row['state']} \nAddress: {row['address']}")
                     flag = True
             else:
-                if row['state'] == state and row['court of practice'].find(type_of_court) != -1 and row['area of practice'].find(type_of_case) != -1:
+                if row['state'].find(state) != -1 and (row['area of practice'].find(type_of_case) != -1 or type_of_case == "none"):
                     if row['address'] == "":
                         dispatcher.utter_message(text=f"Lawyer Name: {row['name']} \nLawyer State: {row['state']} \nAddress: Not Available")
                     else:
@@ -134,7 +130,7 @@ class SubmitLawyerInfo(Action):
         if not flag:
             dispatcher.utter_message("No data found")
 
-        return [SlotSet("state", None), SlotSet("type_of_court", None), SlotSet("type_of_case", None)]
+        return [SlotSet("state", None), SlotSet("type_of_case", None)]
     
 class SubmitCaseStudyInfo(Action):
 
@@ -148,45 +144,34 @@ class SubmitCaseStudyInfo(Action):
         file_path = 'C:/Users/Esha Srivastav/Desktop/dev/fyp/Judgement_cases.csv'
         data = read_csv_file(file_path)
 
-        # type_of_court = tracker.get_slot("type_of_court")        
-        # state = tracker.get_slot("state") 
-        # type_of_case = tracker.get_slot("type_of_case")
         keywords = tracker.get_slot("keywords")
         
         flag = False 
 
         i = 1
 
+        # Counter to return top 3 documents
+        j = 1 
+
         if keywords != None:
             keywords = list(keywords.split(", "))
             [x.lower() for x in keywords]
-            stem_words(keywords)   
+            stem_words(keywords)  
             for row in data:
                 all_keywords = list(row[2].split(", "))
                 mod_keywords = [w.replace("'", "") for w in all_keywords]
                 mod1_keywords = [w.replace("[", "") for w in mod_keywords]
                 mod2_keywords = [w.replace("]", "") for w in mod1_keywords]
-                if are_all_similar_words_in_set(keywords, mod2_keywords, i) is True: 
+                if are_all_similar_words_in_set(keywords, mod2_keywords, i) is True and j <= 3: 
                         dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
                         flag = True
+                        j+=1
                 i+=1
 
         if not flag:
             dispatcher.utter_message("No data found")
 
-        return [SlotSet("state", None), SlotSet("type_of_court", None), SlotSet("type_of_case", None), SlotSet("opt_keywords", None), SlotSet("keywords", None)]
-    
-class ActionGreetUser(Action):
-    def name(self) -> Text:
-        return "action_greet_user"
-
-    def run(self, dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-
-        dispatcher.utter_message("Hello! How can I help you today?")
-
-        return []
+        return [SlotSet("state", None), SlotSet("type_of_case", None), SlotSet("opt_keywords", None), SlotSet("keywords", None)]
     
 class ActionOfferOptions(Action):
     def name(self) -> Text:
@@ -206,25 +191,6 @@ class ActionOfferOptions(Action):
         dispatcher.utter_message(text=message, buttons=buttons, ignore_text=True)
         
         return []
-    
-class ActionOfferTOCOptions(Action):
-    def name(self) -> Text:
-        return "action_ask_type_of_court"
-
-    def run(self, dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-
-        buttons = [
-            # {"payload": "district", "title": "District"},
-            {"payload": "high", "title":"High"},
-            {"payload": "supreme", "title": "Supreme"}
-        ]
-
-        message = "What type of court is your case in?"
-        dispatcher.utter_message(text=message, buttons=buttons)
-
-        return []
 
 class ActionOfferStateOptions(Action):
     def name(self) -> Text:
@@ -234,12 +200,15 @@ class ActionOfferStateOptions(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        buttons = []
-
+        buttons = [
+            {"payload": "supreme", "title": "Supreme"},
+            {"payload": "none", "title": "None"}
+        ]
+        
         for state in states:
             buttons.append({"payload": state, "title": state}) 
 
-        message = "Which state should the case belong to?"
+        message = "Which court should the case belong to? Type your state if not mentioned in the options."
         dispatcher.utter_message(text=message, buttons=buttons)
 
         return []
@@ -257,7 +226,8 @@ class ActionOfferTOCaOptions(Action):
             {"payload": "civil", "title": "Civil"},
             {"payload": "divorce", "title": "Divorce"},
             {"payload": "sexual harassment", "title": "Sexual Harassment"},
-            {"payload": "child custody", "title": "Child Custody"}
+            {"payload": "child custody", "title": "Child Custody"},
+            {"payload": "none", "title": "None"}
         ] 
 
         message = "What type of case do you have?"
@@ -309,9 +279,6 @@ class ValidateLawyerForm(FormValidationAction):
         domain: "DomainDict",
     ) -> List[Text]:
         updated_slots = domain_slots.copy()
-        if tracker.slots.get("type_of_court") == "supreme":
-            updated_slots.remove("state")
-
         return updated_slots
         
     def validate_state(
@@ -325,23 +292,13 @@ class ValidateLawyerForm(FormValidationAction):
         print(slot_value)
         if slot_value in states:
             return {"state": slot_value}
+        elif slot_value == "supreme":
+            return {"state": slot_value}
+        elif slot_value == "none":
+            return {"state": slot_value}
         else:
             dispatcher.utter_message(text="Incorrect option for state.")
             return {"state": None}
-
-    def validate_type_of_court(
-        self,
-        slot_value: Any,
-        dispatcher: CollectingDispatcher,
-        tracker: Tracker,
-        domain: DomainDict,
-    ) -> Dict[Text, Any]:
-        """Validate `type_of_court` value."""
-        if slot_value in ["high", "supreme"]:
-            return {"type_of_court": slot_value}
-        else:
-            dispatcher.utter_message(text="Incorrect option for toc.")
-            return {"type_of_court": None}
         
     def validate_type_of_case(
         self,
@@ -369,54 +326,44 @@ class ValidateCaseStudyForm(FormValidationAction):
         domain: "DomainDict",
     ) -> List[Text]:
         updated_slots = domain_slots.copy()
-        if tracker.slots.get("type_of_court") == "supreme":
-            updated_slots.remove("state")
         if tracker.slots.get("opt_keywords") == "no":
             updated_slots.remove("keywords")
 
         return updated_slots
     
-#     def validate_state(
-#         self,
-#         slot_value: Any,
-#         dispatcher: CollectingDispatcher,
-#         tracker: Tracker,
-#         domain: DomainDict,
-#     ) -> Dict[Text, Any]:
-#         """Validate `state` value."""
-#         if slot_value in states:
-#             return {"state": slot_value}
-#         else:
-#             dispatcher.utter_message(text="Incorrect option for state.")
-#             return {"state": None}
+    def validate_state(
+        self,
+        slot_value: Any,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        """Validate `state` value."""
+        print(slot_value)
+        print(states)
+        if slot_value in states:
+            return {"state": slot_value}
+        elif slot_value == "supreme":
+            return {"state": slot_value}
+        elif slot_value == "none":
+            return {"state": slot_value}
+        else:
+            dispatcher.utter_message(text="Incorrect option for state.")
+            return {"state": None}    
         
-#     def validate_type_of_court(
-#         self,
-#         slot_value: Any,
-#         dispatcher: CollectingDispatcher,
-#         tracker: Tracker,
-#         domain: DomainDict,
-#     ) -> Dict[Text, Any]:
-#         """Validate `type_of_court` value."""
-#         if slot_value in ["district", "high", "supreme"]:
-#             return {"type_of_court": slot_value}
-#         else:
-#             dispatcher.utter_message(text="Incorrect option for toc.")
-#             return {"type_of_court": None}
-        
-    # def validate_type_of_case(
-    #     self,
-    #     slot_value: Any,
-    #     dispatcher: CollectingDispatcher,
-    #     tracker: Tracker,
-    #     domain: DomainDict,
-    # ) -> Dict[Text, Any]:
-    #     """Validate `type_of_case` value."""
-    #     if isinstance(slot_value, str):
-    #         return {"type_of_case": slot_value}
-    #     else:
-    #         dispatcher.utter_message(text="Incorrect option for tocc.")
-    #         return {"type_of_case": None}
+    def validate_type_of_case(
+        self,
+        slot_value: Any,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        """Validate `type_of_case` value."""
+        if isinstance(slot_value, str):
+            return {"type_of_case": slot_value}
+        else:
+            dispatcher.utter_message(text="Incorrect option for type of case.")
+            return {"type_of_case": None}
 
     def validate_opt_keywords(
         self,
@@ -431,22 +378,6 @@ class ValidateCaseStudyForm(FormValidationAction):
         else:
             dispatcher.utter_message(text="Incorrect option for opting keywords.")
             return {"opt_keywords": None}
-        
-# class ValidatePredefinedSlots(ValidationAction):    
-#     def validate_options(
-#         self,
-#         slot_value: Any,
-#         dispatcher: CollectingDispatcher,
-#         tracker: Tracker,
-#         domain: DomainDict,
-#     ) -> Dict[Text, Any]:
-#         """Validate `options` value."""
-#         print(slot_value)
-#         if slot_value in ["/request_case_study", "/request_lawyer", "/hindu_marriage"]:
-#             return {"options": slot_value}
-#         else:
-#             dispatcher.utter_message(text="Incorrect option.")
-#             return {"options": None}
 
 class ActionHandleAffirmation(Action):
     def name(self) -> Text:
