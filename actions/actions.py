@@ -4,15 +4,22 @@ from rasa_sdk import Action, Tracker, FormValidationAction, ValidationAction
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
 from rasa_sdk.types import DomainDict
+from sklearn.metrics.pairwise import cosine_similarity
+from oauth2client.service_account import ServiceAccountCredentials
+from transformers import LongformerTokenizer, LongformerModel
 
 import csv
+csv.field_size_limit(100000000)
+
 import gspread
-
 import numpy as np
+import re
+import ast
+import json
 
-from oauth2client.service_account import ServiceAccountCredentials
-
-from sklearn.metrics.pairwise import cosine_similarity
+# Load the Longformer model and tokenizer
+tokenizer = LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
+model = LongformerModel.from_pretrained('allenai/longformer-base-4096')
 
 
 scope = ['https://www.googleapis.com/auth/spreadsheets']
@@ -32,7 +39,7 @@ worksheet = client.open_by_key(spreadsheet_id).sheet1
 # Read the data from the worksheet
 data = worksheet.get_all_records()
 
-from nltk.stem import PorterStemmer
+from nltk.stem import PorterStemmer 
 from nltk.tokenize import word_tokenize
 stemmer = PorterStemmer()
  
@@ -49,9 +56,8 @@ def are_all_similar_words_in_set(input_words, word_set, i):
                      for word in input_words
                      if get_close_matches(word, word_set, n=1, cutoff=0.8)]
     
-    print(str(i) + " " + str(similar_words))
+    # print(str(i) + " " + str(similar_words))
 
-    # Check if 75% of the input words have at least one similar word in the set
     return (len(similar_words)/len(input_words) > 0)
 
 states = set()
@@ -66,6 +72,43 @@ def read_csv_file(file_path):
         for row in reader:
             data.append(row)
     return data
+
+doc_embeddings = []
+
+# def read_cases_file(file_path):
+#     with open(file_path, 'r') as file:
+#         csv_reader = csv.reader(file)
+#         csv_reader = next(csv_reader)  # Skip the header row if present
+#         for row in csv_reader:
+#             # print(row[3])
+#             embedding = re.split(r',\s+', row[3])
+#             embedding = re.split(r',\s+', row[3])
+#             embedding_list = []
+#             for value in embedding:
+#                 if value != '':
+#                     try:
+#                         if 'e' in value or 'E' in value:
+#                             embedding_list.append(float(value))
+#                         else:
+#                             embedding_list.append(float(value.replace(',', '')))
+#                     except ValueError:
+#                         pass
+
+#             doc_embeddings.append(embedding_list)
+    
+#     print(doc_embeddings)
+
+case_names = []
+
+def read_cases_file(file_path):
+    with open(file_path, 'r') as file:
+        csv_reader = csv.reader(file)
+        # print(csv_reader[1][3])
+        for row in csv_reader:
+            if(row[3] != "Word embeddings"):
+                embedding = ast.literal_eval(row[3])
+                doc_embeddings.append(embedding)
+                case_names.append(row[0])
 
 class ActionGreetUser(Action):
     def name(self) -> Text:
@@ -130,7 +173,7 @@ class SubmitLawyerInfo(Action):
         if not flag:
             dispatcher.utter_message("No data found")
 
-        return [SlotSet("state", None), SlotSet("type_of_case", None)]
+        return [SlotSet("state", None), SlotSet("type_of_case", None), SlotSet("keywords", None)]
     
 class SubmitCaseStudyInfo(Action):
 
@@ -141,32 +184,59 @@ class SubmitCaseStudyInfo(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        file_path = 'C:/Users/Esha Srivastav/Desktop/dev/fyp/Judgement_cases.csv'
-        data = read_csv_file(file_path)
+        file_path = 'FinalJudgement_cases - 2.csv'
+        read_cases_file(file_path)
 
         keywords = tracker.get_slot("keywords")
         
         flag = False 
 
-        i = 1
-
-        # Counter to return top 3 documents
-        j = 1 
+        similarity_scores = []            
 
         if keywords != None:
             keywords = list(keywords.split(", "))
             [x.lower() for x in keywords]
             stem_words(keywords)  
-            for row in data:
-                all_keywords = list(row[2].split(", "))
-                mod_keywords = [w.replace("'", "") for w in all_keywords]
-                mod1_keywords = [w.replace("[", "") for w in mod_keywords]
-                mod2_keywords = [w.replace("]", "") for w in mod1_keywords]
-                if are_all_similar_words_in_set(keywords, mod2_keywords, i) is True and j <= 3: 
-                        dispatcher.utter_message(text=f"Judgement Case Name: {row[0]} \nCase Link: {row[1]}")
-                        flag = True
-                        j+=1
-                i+=1
+            encoded = tokenizer.encode_plus(keywords, padding=True, truncation=True, return_tensors='pt')
+            input_ids = encoded['input_ids']  # Remove the batch dimension
+            attention_mask = encoded['attention_mask']  # Remove the batch dimension
+            outputs = model(input_ids, attention_mask=attention_mask)
+            keywords_embedding = outputs.last_hidden_state[:, 0, :].detach().numpy()
+
+            # print(keywords_embedding[0])
+            key_reshaped = np.repeat(np.array(keywords_embedding[0]).reshape(1, -1), len(doc_embeddings), axis=0)
+
+            # Flatten innermost lists in Y
+            docs_flat = [item for sublist in doc_embeddings for item in sublist]
+
+            # # Convert Y_flat into a NumPy array
+            # docs_array = np.array(docs_flat)
+
+            # # Reshape Y_array
+            # docs_reshaped = docs_array.reshape(len(doc_embeddings), -1)
+
+
+            # print(keywords_embedding)
+
+            # similarity_scores = cosine_similarity(doc_embeddings, keywords_embedding)
+            
+
+            # print(keywords_embedding[0])           
+
+            # for key_embedding in keywords_embedding:
+            score = cosine_similarity(key_reshaped, docs_flat)
+            similarity_scores.append(score)                
+
+            # print(similarity_scores)
+
+            # Determine if document contains user keywords
+            threshold = 0.8  # Set your desired similarity threshold
+
+            for i, similarity_score in enumerate(similarity_scores):
+                similarity_scores_list = similarity_score.tolist()[0]
+                print(similarity_scores_list)
+                if any(score >= threshold for score in similarity_scores_list):
+                    print(case_names[i] + " contains user keywords.")
 
         if not flag:
             dispatcher.utter_message("No data found")
@@ -289,7 +359,6 @@ class ValidateLawyerForm(FormValidationAction):
         domain: DomainDict,
     ) -> Dict[Text, Any]:
         """Validate `state` value."""
-        print(slot_value)
         if slot_value in states:
             return {"state": slot_value}
         elif slot_value == "supreme":
@@ -339,8 +408,6 @@ class ValidateCaseStudyForm(FormValidationAction):
         domain: DomainDict,
     ) -> Dict[Text, Any]:
         """Validate `state` value."""
-        print(slot_value)
-        print(states)
         if slot_value in states:
             return {"state": slot_value}
         elif slot_value == "supreme":
