@@ -15,7 +15,7 @@ import gspread
 import numpy as np
 import re
 import ast
-import json
+import heapq
 
 # Load the Longformer model and tokenizer
 tokenizer = LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
@@ -75,30 +75,8 @@ def read_csv_file(file_path):
 
 doc_embeddings = []
 
-# def read_cases_file(file_path):
-#     with open(file_path, 'r') as file:
-#         csv_reader = csv.reader(file)
-#         csv_reader = next(csv_reader)  # Skip the header row if present
-#         for row in csv_reader:
-#             # print(row[3])
-#             embedding = re.split(r',\s+', row[3])
-#             embedding = re.split(r',\s+', row[3])
-#             embedding_list = []
-#             for value in embedding:
-#                 if value != '':
-#                     try:
-#                         if 'e' in value or 'E' in value:
-#                             embedding_list.append(float(value))
-#                         else:
-#                             embedding_list.append(float(value.replace(',', '')))
-#                     except ValueError:
-#                         pass
-
-#             doc_embeddings.append(embedding_list)
-    
-#     print(doc_embeddings)
-
 case_names = []
+case_links = []
 
 def read_cases_file(file_path):
     with open(file_path, 'r') as file:
@@ -109,6 +87,7 @@ def read_cases_file(file_path):
                 embedding = ast.literal_eval(row[3])
                 doc_embeddings.append(embedding)
                 case_names.append(row[0])
+                case_links.append(row[2])
 
 class ActionGreetUser(Action):
     def name(self) -> Text:
@@ -184,14 +163,12 @@ class SubmitCaseStudyInfo(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        file_path = 'FinalJudgement_cases - 2.csv'
+        file_path = 'FinalJudgement_cases.csv'
         read_cases_file(file_path)
 
         keywords = tracker.get_slot("keywords")
         
-        flag = False 
-
-        similarity_scores = []            
+        flag = False            
 
         if keywords != None:
             keywords = list(keywords.split(", "))
@@ -203,40 +180,21 @@ class SubmitCaseStudyInfo(Action):
             outputs = model(input_ids, attention_mask=attention_mask)
             keywords_embedding = outputs.last_hidden_state[:, 0, :].detach().numpy()
 
-            # print(keywords_embedding[0])
-            key_reshaped = np.repeat(np.array(keywords_embedding[0]).reshape(1, -1), len(doc_embeddings), axis=0)
+            key_reshaped = np.repeat(np.array(keywords_embedding).reshape(1, -1), len(doc_embeddings), axis=0)
 
             # Flatten innermost lists in Y
             docs_flat = [item for sublist in doc_embeddings for item in sublist]
+            similarity_scores = cosine_similarity(key_reshaped, docs_flat)
 
-            # # Convert Y_flat into a NumPy array
-            # docs_array = np.array(docs_flat)
+            top_indices = np.argpartition(similarity_scores, -3, axis=None)[-3:]
 
-            # # Reshape Y_array
-            # docs_reshaped = docs_array.reshape(len(doc_embeddings), -1)
-
-
-            # print(keywords_embedding)
-
-            # similarity_scores = cosine_similarity(doc_embeddings, keywords_embedding)
-            
-
-            # print(keywords_embedding[0])           
-
-            # for key_embedding in keywords_embedding:
-            score = cosine_similarity(key_reshaped, docs_flat)
-            similarity_scores.append(score)                
-
-            # print(similarity_scores)
-
-            # Determine if document contains user keywords
-            threshold = 0.8  # Set your desired similarity threshold
-
-            for i, similarity_score in enumerate(similarity_scores):
-                similarity_scores_list = similarity_score.tolist()[0]
-                print(similarity_scores_list)
-                if any(score >= threshold for score in similarity_scores_list):
-                    print(case_names[i] + " contains user keywords.")
+            # Print the top 3 documents
+            for i, index in enumerate(top_indices, 1):
+                document_index, sub_index = np.unravel_index(index, similarity_scores.shape)
+                score = similarity_scores[document_index, sub_index]
+                print(f"Top {i}: Document {document_index + 1} with similarity score {score}")
+                print(case_names[document_index])
+                dispatcher.utter_message(text=f"Case Name: {case_names[document_index]} \nCase link: {case_links[document_index]}")
 
         if not flag:
             dispatcher.utter_message("No data found")
