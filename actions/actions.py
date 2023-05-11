@@ -182,7 +182,7 @@ class SubmitCaseStudyInfo(Action):
 
             key_reshaped = np.repeat(np.array(keywords_embedding).reshape(1, -1), len(doc_embeddings), axis=0)
 
-            # Flatten innermost lists in Y
+            # Flatten innermost lists in doc_embeddings
             docs_flat = [item for sublist in doc_embeddings for item in sublist]
             similarity_scores = cosine_similarity(key_reshaped, docs_flat)
 
@@ -195,6 +195,8 @@ class SubmitCaseStudyInfo(Action):
                 print(f"Top {i}: Document {document_index + 1} with similarity score {score}")
                 print(case_names[document_index])
                 dispatcher.utter_message(text=f"Case Name: {case_names[document_index]} \nCase link: {case_links[document_index]}")
+
+            flag = True
 
         if not flag:
             dispatcher.utter_message("No data found")
